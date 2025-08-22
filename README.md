@@ -3,8 +3,6 @@
 
 A modern, secure online voting system built with the MERN stack that provides features such as Accuracy, Convenience, and Privacy. Our system uses face recognition for voter verification, blockchain technology for vote integrity, and a robust backend API.
 
-![Logo](https://raw.githubusercontent.com/Themysticlees/Secure-Online-Voting-System-using-Face-Recognition-and-BlockChain/master/src/main/resources/static/images/loader1.png)
-
 ## Table of Contents
 - [Brief Description](#brief-description)
 - [Objective of the Project](#objective-of-the-project)
@@ -30,29 +28,6 @@ The specific objectives of the project include:
 - Implementing an automated voting system.
 - Validating the system to ensure that only eligible voters are allowed to vote.
 - An increasing number of voters as individuals will find it easier and more convenient to vote, especially those abroad.
-
-## Screenshots
-
-#### Home Page
-![](https://raw.githubusercontent.com/Themysticlees/Secure-Online-Voting-System-using-Face-Recognition-and-BlockChain/master/Screenshots/Image%201.png)
-
-#### Registration Page
-![](https://raw.githubusercontent.com/Themysticlees/Secure-Online-Voting-System-using-Face-Recognition-and-BlockChain/master/Screenshots/Image%202.png)
-
-#### Instructions (In Video and Written)
-![](https://raw.githubusercontent.com/Themysticlees/Secure-Online-Voting-System-using-Face-Recognition-and-BlockChain/master/Screenshots/Image%203.jpg)
-
-#### Admin Portal
-![](https://raw.githubusercontent.com/Themysticlees/Secure-Online-Voting-System-using-Face-Recognition-and-BlockChain/master/Screenshots/Image%204.png)
-
-#### Details of the Registered Users
-![](https://raw.githubusercontent.com/Themysticlees/Secure-Online-Voting-System-using-Face-Recognition-and-BlockChain/master/Screenshots/Image%205.png)
-
-#### User Portal when Voting goes LIVE!
-![](https://raw.githubusercontent.com/Themysticlees/Secure-Online-Voting-System-using-Face-Recognition-and-BlockChain/master/Screenshots/Image%206.png)
-
-#### Confirmation Email after successfully Voting
-![](https://raw.githubusercontent.com/Themysticlees/Secure-Online-Voting-System-using-Face-Recognition-and-BlockChain/master/Screenshots/Image%207.png)
 
 ## Technologies
 
@@ -94,65 +69,115 @@ The specific objectives of the project include:
 - **Audit Trail** - Complete voting history
 - **Email Notifications** - Automated communications
 
+## Prerequisites
+
+- **Node.js v20** (Required) - Download and install from [Node.js official website](https://nodejs.org/)
+- MongoDB (Local or Atlas)
+- Git
+- Webcam (for face recognition)
+- Modern web browser (Chrome/Firefox/Edge)
+
+> **Important**: This application requires Node.js v20. Other versions are not supported.
+
 ## Installation & Setup
 
-### Prerequisites
-- Node.js (v14 or higher)
-- MongoDB (v4.4 or higher)
-- npm or yarn package manager
+### 1. Install Node.js v20
 
-### Step 1: Clone the Repository
+First, make sure you have Node.js v20 installed:
+
 ```bash
-git clone https://github.com/yourusername/Secure-Online-Voting-System-using-Face-Recognition-and-BlockChain.git
-cd Secure-Online-Voting-System-using-Face-Recognition-and-BlockChain
+node --version  # Should show v20.x.x
 ```
 
-### Step 2: Install Dependencies
+If you need to install or update Node.js:
+- Windows/macOS: Download and install from [Node.js v20](https://nodejs.org/)
+- Linux: 
+  ```bash
+  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+  sudo apt-get install -y nodejs
+  ```
+
+### 2. Clone the Repository
+
+```bash
+git clone https://github.com/PawanMohit16/BlockChainVotingSystem.git
+cd BlockChainVotingSystem
+```
+
+### 3. Install Dependencies
+
 ```bash
 npm install
 ```
 
-### Step 3: Environment Configuration
-Copy the environment example file and configure your settings:
+### 4. Configure Environment Variables
+
 ```bash
-cp env.example .env
+# Copy the example environment file
+cp .env.example .env
 ```
 
-Edit `.env` file with your configuration:
-```env
-# Server Configuration
-PORT=4000
-NODE_ENV=development
+Edit the `.env` file and update the following variables:
+- `MONGODB_URI`: Your MongoDB connection string
+- `JWT_SECRET`: A strong secret for JWT tokens
+- Email configuration (SMTP settings)
+- Other necessary configurations
 
-# MongoDB Configuration
-MONGODB_URI=mongodb://localhost:27017/voting_system
+### 5. Set Up MongoDB
 
-# JWT Configuration
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+- Install MongoDB Community Edition from [MongoDB's website](https://www.mongodb.com/try/download/community)
+- Start MongoDB service:
+  - Windows: `net start MongoDB`
+  - macOS/Linux: `sudo systemctl start mongod`
+- Create a database:
+  ```bash
+  mongosh
+  use voting_system
+  ```
 
-# Email Configuration
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
+### 6. Start the Application
 
-# Frontend URL
-FRONTEND_URL=http://localhost:3000
+#### Development Mode
+```bash
+npm run dev
 ```
 
-### Step 4: Database Setup
-Start MongoDB service and create the database:
+#### Production Mode
 ```bash
-# Start MongoDB (Windows)
-net start MongoDB
+npm run build
+npm start
+```
 
-# Start MongoDB (macOS/Linux)
+The application will be available at: http://localhost:3000
+
+## Docker Support
+
+If you prefer using Docker:
+
+```bash
+# Build the Docker image
+docker build -t voting-system .
+
+# Run the container
+docker run -p 3000:3000 --env-file .env voting-system
+```
+
+## Troubleshooting
+
+- **Node.js Version Issues**: Ensure you're using Node.js v20
+  ```bash
+  node --version  # Should show v20.x.x
+  ```
+
+- **MongoDB Connection**: Verify MongoDB is running and the connection string in `.env` is correct
+
+- **Port Conflicts**: Change the `PORT` in `.env` if port 3000 is already in use
+
 sudo systemctl start mongod
 
 # Create database
 mongosh
 use voting_system
-```
 
 ### Step 5: Face Recognition Models
 Download face-api.js models and place them in the `models/face-api` directory:
@@ -284,23 +309,3 @@ docker run -p 4000:4000 --env-file .env voting-system
 ## License
 
 This project is licensed under the MIT License.
-
-## Authors
-
-- [Gunjan Ganguly](https://github.com/Themysticlees)
-- [Rajdeep Sarkar](https://github.com/Speak2Rajdeep)
-- [Sourav Bhadra](https://github.com/Sourav-Bhadra)
-- [Arpan Saha](https://github.com/ArpanSaha08)
-
-## Support
-
-If you have any questions or need support, please reach out to us at gunjanganguly12@gmail.com
-
-## Demo
-
-(Will be Uploaded Later)
-
-## Feedback
-
-If you have any feedback, please reach out to us at gunjanganguly12@gmail.com
-
