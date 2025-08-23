@@ -2,10 +2,10 @@ package net.codejava.model;
 
 import java.beans.Transient;
 import java.sql.Date;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
+@Document(collection = "users")
 public class User {
 	@Id
 	private String username; // Adhar ID

@@ -177,8 +177,14 @@ public class MainController {
 
 			// saving the user in the database
 			// repo is the bean of User repository
-
+			
+			System.out.println("=== REGISTRATION DEBUG ===");
+			System.out.println("Attempting to save pending user: " + pending.getUsername());
+			System.out.println("Pending object: " + pending.toString());
+			
 			Pending UserPending = pendingRepo.save(pending);
+			System.out.println("User saved successfully with ID: " + UserPending.getUsername());
+			System.out.println("=== END REGISTRATION DEBUG ===");
 			// Storing the entire path of the file
 			String uploadDir = "user-photos/" + UserPending.getUsername();
 

@@ -25,7 +25,7 @@ public class ElectionService {
     }
     
     // Get election by ID
-    public Optional<Election> getElectionById(Long id) {
+    public Optional<Election> getElectionById(String id) {
         return electionRepo.findById(id);
     }
     
@@ -51,12 +51,12 @@ public class ElectionService {
     }
     
     // Delete election
-    public void deleteElection(Long id) {
+    public void deleteElection(String id) {
         electionRepo.deleteById(id);
     }
     
     // Activate election
-    public Election activateElection(Long id) {
+    public Election activateElection(String id) {
         Optional<Election> electionOpt = electionRepo.findById(id);
         if (electionOpt.isPresent()) {
             Election election = electionOpt.get();
@@ -68,7 +68,7 @@ public class ElectionService {
     }
     
     // Complete election
-    public Election completeElection(Long id) {
+    public Election completeElection(String id) {
         Optional<Election> electionOpt = electionRepo.findById(id);
         if (electionOpt.isPresent()) {
             Election election = electionOpt.get();
@@ -80,7 +80,7 @@ public class ElectionService {
     }
     
     // Cancel election
-    public Election cancelElection(Long id) {
+    public Election cancelElection(String id) {
         Optional<Election> electionOpt = electionRepo.findById(id);
         if (electionOpt.isPresent()) {
             Election election = electionOpt.get();

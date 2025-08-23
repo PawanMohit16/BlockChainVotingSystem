@@ -1,35 +1,27 @@
 package net.codejava.model;
 
-import javax.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "elections")
+@Document(collection = "elections")
 public class Election {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    private String id;
     
-    @Column(nullable = false, unique = true)
     private String title;
     
-    @Column(columnDefinition = "TEXT")
     private String description;
     
-    @Column(nullable = false)
     private LocalDateTime startDate;
     
-    @Column(nullable = false)
     private LocalDateTime endDate;
     
-    @Enumerated(EnumType.STRING)
     private ElectionStatus status = ElectionStatus.PENDING;
     
-    @Column(nullable = false)
     private LocalDateTime createdAt;
     
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
     
     // Enum for election status
@@ -53,11 +45,11 @@ public class Election {
     }
     
     // Getters and Setters
-    public Long getId() {
+    public String getId() {
         return id;
     }
     
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
     
@@ -133,8 +125,8 @@ public class Election {
         return status == ElectionStatus.COMPLETED;
     }
     
-    @PreUpdate
-    public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
+    // @PreUpdate
+    // public void preUpdate() {
+    //     this.updatedAt = LocalDateTime.now();
+    // }
 }

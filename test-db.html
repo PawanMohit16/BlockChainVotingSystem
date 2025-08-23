@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Database Test</title>
+</head>
+<body>
+    <h1>Database Connection Test</h1>
+    <p>Current Database: collegeproject</p>
+    <p>Collections to check:</p>
+    <ul>
+        <li><strong>pending</strong> - New registrations (check here first!)</li>
+        <li><strong>users</strong> - Approved users</li>
+        <li><strong>candidates</strong> - Election candidates</li>
+    </ul>
+    
+    <h2>Registration Flow:</h2>
+    <ol>
+        <li>User registers → Data goes to <strong>pending</strong> collection</li>
+        <li>Admin approves → Data moves to <strong>users</strong> collection</li>
+        <li>User can login → Only after approval</li>
+    </ol>
+    
+    <h2>To Check Your Data:</h2>
+    <p>1. Go to MongoDB Atlas</p>
+    <p>2. Open database: <strong>collegeproject</strong></p>
+    <p>3. Check collection: <strong>pending</strong></p>
+    <p>4. Your registration should be there!</p>
+</body>
+</html>

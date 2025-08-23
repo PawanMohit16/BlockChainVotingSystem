@@ -36,7 +36,7 @@ public class VoteService {
             smartcontract.correctTableValues();
         }
         
-        Votedata lastEntry = voterepo.findLastEntry();
+        Votedata lastEntry = voterepo.findTopByOrderByDateDesc();
         System.out.println(lastEntry);
         System.out.println(adhhar+"-----"+name+"-----"+choice+"-----"+lastEntry.getCurrhash());
         String[] data = { adhhar, name, choice };
@@ -51,7 +51,9 @@ public class VoteService {
         vote.setDate(date);
         System.out.println("*************** Vote Saved*********************");
         voterepo.save(vote);
-        voterepo.copyData(vote.getUsername(), vote.getCurrhash(), vote.getDate(), vote.getPrevhash());
+        // Note: MongoDB doesn't support native SQL operations
+        // This functionality would need to be implemented differently
+        // voterepo.copyData(vote.getUsername(), vote.getCurrhash(), vote.getDate(), vote.getPrevhash());
 
         return true;
     }

@@ -1,10 +1,10 @@
 package net.codejava.model;
 
 import java.util.*;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
+@Document(collection = "votedata")
 public class Votedata {
 
     @Id

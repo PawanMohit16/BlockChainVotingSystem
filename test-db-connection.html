@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Database Connection Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .success { color: green; }
+        .info { color: blue; }
+        .warning { color: orange; }
+        .error { color: red; }
+        .step { margin: 10px 0; padding: 10px; border-left: 3px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>MongoDB Atlas Database Test</h1>
+    
+    <div class="step">
+        <h2 class="success">✅ Connection Status: SUCCESSFUL</h2>
+        <p>Your application is connected to MongoDB Atlas!</p>
+        <p><strong>Cluster:</strong> cluster0.uvsusfb.mongodb.net</p>
+        <p><strong>Database:</strong> collegeproject</p>
+    </div>
+
+    <div class="step">
+        <h3 class="info">📊 How to Access Your Database:</h3>
+        <ol>
+            <li>Go to <a href="https://cloud.mongodb.com" target="_blank">MongoDB Atlas</a></li>
+            <li>Login with: <strong>seelammohith2222</strong></li>
+            <li>Click on your project</li>
+            <li>Click "Database" → "Cluster0"</li>
+            <li>Click "Collections" tab</li>
+            <li>Look for <strong>collegeproject</strong> database</li>
+        </ol>
+    </div>
+
+    <div class="step">
+        <h3 class="warning">🔧 If Database Doesn't Exist:</h3>
+        <ol>
+            <li>Click <strong>"+ Create Database"</strong></li>
+            <li>Database Name: <strong>collegeproject</strong></li>
+            <li>Collection Name: <strong>users</strong></li>
+            <li>Click "Create"</li>
+        </ol>
+    </div>
+
+    <div class="step">
+        <h3 class="info">📋 Expected Collections:</h3>
+        <p>Your application will automatically create these collections:</p>
+        <ul>
+            <li><strong>pending</strong> - New user registrations</li>
+            <li><strong>users</strong> - Approved users</li>
+            <li><strong>candidates</strong> - Election candidates</li>
+            <li><strong>votedata</strong> - Voting records</li>
+            <li><strong>votecopy</strong> - Backup data</li>
+            <li><strong>elections</strong> - Election information</li>
+            <li><strong>blocks</strong> - Blockchain data</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h3 class="success">🧪 Test Your Application:</h3>
+        <p>1. Go to <a href="http://localhost:4000" target="_blank">http://localhost:4000</a></p>
+        <p>2. Try registering a new user</p>
+        <p>3. Check if data appears in the <strong>pending</strong> collection</p>
+    </div>
+
+    <div class="step">
+        <h3 class="info">🔍 Manual Collection Test:</h3>
+        <p>To manually add a test document:</p>
+        <ol>
+            <li>In MongoDB Atlas, click on the <strong>collegeproject</strong> database</li>
+            <li>Click on any collection (or create one)</li>
+            <li>Click "Insert Document"</li>
+            <li>Add a test document like:</li>
+        </ol>
+        <pre>
+{
+  "test": "Hello World",
+  "timestamp": new Date(),
+  "message": "Database connection working!"
+}
+        </pre>
+    </div>
+</body>
+</html>

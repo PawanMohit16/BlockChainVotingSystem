@@ -16,7 +16,9 @@ public class VoteSmartContract {
     }
     
     public void correctTableValues() {
-        voteRepo.copyData();
+        // Note: MongoDB doesn't support native SQL operations
+        // This functionality would need to be implemented differently
+        // voteRepo.copyData();
     }
     
     public String voteCount() {

@@ -84,7 +84,7 @@ public class AdminController {
     }
     
     @GetMapping("/elections/{id}/edit")
-    public String editElection(@PathVariable Long id, Model model) {
+    public String editElection(@PathVariable String id, Model model) {
         Election election = electionService.getElectionById(id).orElse(null);
         if (election == null) {
             return "redirect:/admin/elections";
@@ -94,7 +94,7 @@ public class AdminController {
     }
     
     @PostMapping("/elections/{id}/update")
-    public String updateElection(@PathVariable Long id, 
+    public String updateElection(@PathVariable String id, 
                                 @ModelAttribute Election election,
                                 @RequestParam("startDateStr") String startDateStr,
                                 @RequestParam("endDateStr") String endDateStr,
@@ -120,7 +120,7 @@ public class AdminController {
     }
     
     @PostMapping("/elections/{id}/activate")
-    public String activateElection(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String activateElection(@PathVariable String id, RedirectAttributes redirectAttributes) {
         try {
             electionService.activateElection(id);
             redirectAttributes.addFlashAttribute("message", 
@@ -133,7 +133,7 @@ public class AdminController {
     }
     
     @PostMapping("/elections/{id}/complete")
-    public String completeElection(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String completeElection(@PathVariable String id, RedirectAttributes redirectAttributes) {
         try {
             electionService.completeElection(id);
             redirectAttributes.addFlashAttribute("message", 
@@ -146,7 +146,7 @@ public class AdminController {
     }
     
     @PostMapping("/elections/{id}/cancel")
-    public String cancelElection(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String cancelElection(@PathVariable String id, RedirectAttributes redirectAttributes) {
         try {
             electionService.cancelElection(id);
             redirectAttributes.addFlashAttribute("message", 
@@ -159,7 +159,7 @@ public class AdminController {
     }
     
     @PostMapping("/elections/{id}/delete")
-    public String deleteElection(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String deleteElection(@PathVariable String id, RedirectAttributes redirectAttributes) {
         try {
             electionService.deleteElection(id);
             redirectAttributes.addFlashAttribute("message", 
@@ -181,7 +181,7 @@ public class AdminController {
     }
     
     @PostMapping("/candidates/{id}/approve")
-    public String approveCandidate(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String approveCandidate(@PathVariable String id, RedirectAttributes redirectAttributes) {
         try {
             // Add approval logic here
             redirectAttributes.addFlashAttribute("message", 
@@ -194,7 +194,7 @@ public class AdminController {
     }
     
     @PostMapping("/candidates/{id}/reject")
-    public String rejectCandidate(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String rejectCandidate(@PathVariable String id, RedirectAttributes redirectAttributes) {
         try {
             // Add rejection logic here
             redirectAttributes.addFlashAttribute("message", 
