@@ -3,13 +3,17 @@ package net.codejava.model;
 import java.beans.Transient;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 @Entity
 public class Candidate{
 
     @Id
-    //@GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+    
     private String username;
     
     private String firstname;
@@ -19,7 +23,18 @@ public class Candidate{
 
     private String partypic;
     private String candidatepic;
+    
+    // Additional fields for candidate images
+    private String candidate_image_path;
 
+    public Long getId() {
+        return id;
+    }
+    
+    public void setId(Long id) {
+        this.id = id;
+    }
+    
     public String getUsername() {
         return username;
     }
@@ -59,14 +74,14 @@ public class Candidate{
         this.candidatepic = canidatepic;
     }
     
-    @Transient
     public String getCandidateImagePath() {
-        if (candidatepic == null || username == null)
-            return null;
-
-        return "/candidate-photos/" + username + "/" + candidatepic;
+        return candidate_image_path;
     }
-
+    
+    public void setCandidateImagePath(String candidate_image_path) {
+        this.candidate_image_path = candidate_image_path;
+    }
+    
     @Transient
     public String getCandidatePicImagePath() {
         if (candidatepic == null || username == null)

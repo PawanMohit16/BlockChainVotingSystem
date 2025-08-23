@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.ui.Model;
 
 import net.codejava.helper.EmailTemplate;
+import net.codejava.helper.FileUploadUtil;
 import net.codejava.model.Candidate;
 import net.codejava.model.Pending;
 import net.codejava.model.User;

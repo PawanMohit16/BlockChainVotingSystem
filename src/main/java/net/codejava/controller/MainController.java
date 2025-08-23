@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import net.codejava.helper.EmailTemplate;
+import net.codejava.helper.FileUploadUtil;
 import net.codejava.helper.Message;
 import net.codejava.helper.SHA256;
 import net.codejava.model.Candidate;

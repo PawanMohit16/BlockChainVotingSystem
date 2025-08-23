@@ -262,4 +262,15 @@ public class HomeController {
 
 		return "redirect:/public/home/account";
 	}
+
+	@GetMapping("/test-db")
+	public String testDatabase() {
+		try {
+			// Try to access the database through a simple query
+			long userCount = repo.count();
+			return "Database connected successfully! Total users: " + userCount;
+		} catch (Exception e) {
+			return "Database connection failed! Error: " + e.getMessage();
+		}
+	}
 }
