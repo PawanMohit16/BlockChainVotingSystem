@@ -15,6 +15,7 @@ import java.util.*;
 import net.codejava.helper.EmailTemplate;
 import net.codejava.helper.Message;
 import net.codejava.model.Candidate;
+import net.codejava.model.Votedata;
 import net.codejava.model.User;
 import net.codejava.repository.CandidateRepo;
 import net.codejava.repository.VoteRepo;
@@ -74,57 +75,123 @@ public class VoteController {
 
     @GetMapping("/votecasted/{choice}")
     public String getParty(@PathVariable("choice") String choice, Principal principal, HttpSession session) throws NoSuchAlgorithmException, UnsupportedEncodingException {
-        
-        System.out.println(choice);
+        if (principal == null || principal.getName() == null) {
+            session.setAttribute("status", new Message("You must be logged in to vote.", "danger"));
+            return "redirect:/login";
+        }
+
         String name = principal.getName();
-        // if (!voteService.userExists(name)) {
-        //     System.out.println(voteRepo.findcount() + "=====================" + voteRepo.count());
-        //     if ((voteRepo.findcount() != voteRepo.count())) {
         
-        //         smartcontract.correctTableValues();
-        //         session.setAttribute("status", new Message("You have already voted. Thanks!", "danger"));
-        //     }
-        //     else {
-                User user = userService.getUser(name);
-                System.out.println(user);
-                voteService.isSuccessfull(choice, user.getUsername(), user.getFirstname());
-                String hash = voteRepo.findByUsername(name).getCurrhash();
-
-                String f="Vote successfuly polled";
-			    String s="You have successfuly voted. Your HashValue (Please save this for future reference) ";
-			    String t=hash;
-
-                String email=user.getEmail();
-                String subject="Vote Confirmed!";
-                
-                
-                String message = emailTemplate.getTemplate(f, s, t);
-                emailservice.sendEmail(subject, message, email);
-                
-                session.setAttribute("status", new Message("Thanks for voting!", "success"));
-            // }
-        //}
+        try {
+            // Check if user has already voted
+            if (voteService.userExists(name)) {
+                session.setAttribute("status", new Message("You have already voted. Thanks!", "warning"));
+                return "redirect:/public/home";
+            }
+            
+            // Get user details
+            User user = userService.getUser(name);
+            if (user == null) {
+                session.setAttribute("status", new Message("User not found!", "danger"));
+                return "redirect:/public/home";
+            }
+            
+            // Process the vote
+            boolean voteSuccess = voteService.isSuccessfull(choice, user.getUsername(), user.getFirstname());
+            
+            if (voteSuccess) {
+                // Get the vote hash
+                Votedata vote = voteRepo.findByUsername(name);
+                if (vote != null) {
+                    String hash = vote.getCurrhash();
+                    
+                    try {
+                        // Send confirmation email
+                        String f = "Vote Successfully Recorded";
+                        String s = "Your vote has been successfully recorded. Your unique vote hash (save this for verification): ";
+                        String t = hash;
+                        String email = user.getEmail();
+                        String subject = "Your Vote Has Been Recorded";
+                        String message = emailTemplate.getTemplate(f, s, t);
+                        
+                        // Send email in a separate thread to avoid blocking
+                        new Thread(() -> {
+                            try {
+                                emailservice.sendEmail(subject, message, email);
+                            } catch (Exception e) {
+                                System.err.println("Failed to send confirmation email: " + e.getMessage());
+                            }
+                        }).start();
+                        
+                        // Update user's voted status
+                        user.setVoted(true);
+                        User updatedUser = userService.updateUser(user);
+                        
+                        if (updatedUser != null) {
+                            session.setAttribute("status", new Message("Thank you for voting! A confirmation has been sent to your email.", "success"));
+                        } else {
+                            session.setAttribute("status", new Message("Your vote was recorded, but we couldn't update your profile. Please contact support.", "warning"));
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error in vote processing: " + e.getMessage());
+                        session.setAttribute("status", new Message("Your vote was recorded, but we encountered an issue sending your confirmation.", "warning"));
+                    }
+                } else {
+                    session.setAttribute("status", new Message("Vote recorded, but we couldn't generate a verification hash. Please contact support.", "warning"));
+                }
+            } else {
+                session.setAttribute("status", new Message("Failed to process your vote. Please try again or contact support if the problem persists.", "danger"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            session.setAttribute("status", new Message("An unexpected error occurred while processing your vote. Our team has been notified.", "danger"));
+        }
         
-        // else{
-        //     session.setAttribute("status", new Message("You have already voted. Thanks!", "danger"));
-        // }
-
         return "redirect:/public/home";
     }
 
     @GetMapping("/showResults")
-    public String getResults(Model model) throws NoSuchAlgorithmException{
+    public String getResults(Model model) throws NoSuchAlgorithmException {
+        try {
+            // Get the winning party from the smart contract
+            String winningParty = smartcontract.voteCount();
+            
+            if (winningParty == null || winningParty.isEmpty()) {
+                model.addAttribute("error", "No votes have been cast yet.");
+                return "result.html";
+            }
 
-        String winningParty=smartcontract.voteCount();
+            System.out.println("-------------Winning Party-------------");
+            System.out.println(winningParty);
 
-        System.out.println("-------------Winning Party-------------");
+            // Get the winning candidate details
+            Candidate winner = candidaterepo.findByParty(winningParty);
+            if (winner == null) {
+                model.addAttribute("error", "Could not find details for the winning party: " + winningParty);
+                return "result.html";
+            }
 
-        System.out.println(winningParty);
+            // Get all candidates for vote counts
+            List<Candidate> allCandidates = candidateService.getAllCandidates();
+            
+            // Get total votes cast
+            long totalVotes = voteRepo.count();
+            
+            // Add attributes to the model
+            model.addAttribute("winningParty", winner);
+            model.addAttribute("allCandidates", allCandidates);
+            model.addAttribute("totalVotes", totalVotes);
+            model.addAttribute("votingEnded", true); // Indicate voting has ended
+            
+            // Log the results for debugging
+            System.out.println("Total votes cast: " + totalVotes);
+            System.out.println("Winning party: " + winner.getParty() + " - " + winner.getFirstname() + " " + winner.getLastname());
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("error", "An error occurred while calculating results: " + e.getMessage());
+        }
 
-        Candidate winner=candidaterepo.findByParty(winningParty);
-        model.addAttribute("winningParty",winner);
-
-        //return to result page
         return "result.html";
     }
 }

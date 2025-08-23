@@ -2,53 +2,119 @@ package net.codejava.service;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Scanner;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import net.codejava.model.Block;
-import net.codejava.model.User;
 import net.codejava.model.Votedata;
 import net.codejava.repository.VoteRepo;
 import net.codejava.smartcontract.VoteSmartContract;
 
 @Service
 public class VoteService {
+    private final AtomicBoolean isVotingActive = new AtomicBoolean(false);
 
     @Autowired
     private VoteRepo voterepo;
 
     @Autowired
-    VoteSmartContract smartcontract;
+    private VoteSmartContract smartcontract;
+    
+    // Removed unused mongoTemplate for now
+    
+    // Voting control methods
+    public void setVotingActive(boolean active) {
+        isVotingActive.set(active);
+    }
+    
+    public boolean isVotingActive() {
+        return isVotingActive.get();
+    }
+    
+    public void resetVotingSystem() {
+        // Clear all votes
+        voterepo.deleteAll();
+        // Reset voting status
+        isVotingActive.set(false);
+    }
+    
+    public Map<String, Object> getVotingStatistics() {
+        Map<String, Object> stats = new HashMap<>();
+        
+        // Get total votes cast
+        long totalVotes = voterepo.count();
+        stats.put("totalVotes", totalVotes);
+        
+        // Initialize vote counts by candidate/choice
+        Map<String, Long> votesByCandidate = new HashMap<>();
+        List<Votedata> allVotes = voterepo.findAll();
+        
+        // Count votes by candidate/choice
+        for (Votedata vote : allVotes) {
+            String candidateVote = vote.getCandidate();
+            if (candidateVote != null && !candidateVote.trim().isEmpty()) {
+                votesByCandidate.put(candidateVote, 
+                    votesByCandidate.getOrDefault(candidateVote, 0L) + 1);
+            }
+        }
+        
+        // Add vote counts by candidate
+        stats.put("votesByCandidate", votesByCandidate);
+        
+        // Add voting status
+        stats.put("isVotingActive", isVotingActive.get());
+        
+        // Add timestamp
+        stats.put("lastUpdated", new Date());
+        
+        return stats;
+    }
 
-    public boolean isSuccessfull(String choice, String adhhar, String name)
+    public boolean isSuccessfull(String candidateName, String adhhar, String name)
             throws NoSuchAlgorithmException, UnsupportedEncodingException {
-
-       
-        //correct table
-        // (voterepo.findcount() != voterepo.count())
+        
+        // Check if voting is active
+        if (!isVotingActive()) {
+            throw new IllegalStateException("Voting is not active at this time");
+        }
+        
+        // Check if user has already voted
+        if (userExists(adhhar)) {
+            throw new IllegalStateException("You have already voted");
+        }
+        
+        // Correct table if needed
         if (!smartcontract.checkTable()) {
             smartcontract.correctTableValues();
         }
         
         Votedata lastEntry = voterepo.findTopByOrderByDateDesc();
-        System.out.println(lastEntry);
-        System.out.println(adhhar+"-----"+name+"-----"+choice+"-----"+lastEntry.getCurrhash());
-        String[] data = { adhhar, name, choice };
-        Block candidate = new Block(data, lastEntry.getCurrhash());
+        System.out.println("Last vote entry: " + lastEntry);
+        
+        String[] data = { adhhar, name, candidateName };
+        Block block;
+        
+        if (lastEntry == null) {
+            // This is the first vote, use the genesis block hash
+            System.out.println("First vote in the system");
+            block = new Block(data, "0");
+        } else {
+            System.out.println(adhhar + "-----" + name + "-----" + candidateName + "-----" + lastEntry.getCurrhash());
+            block = new Block(data, lastEntry.getCurrhash());
+        }
 
         Votedata vote = new Votedata();
-        vote.setUsername(adhhar); 
-
-        vote.setCurrhash(candidate.getBlockHash());
-        vote.setPrevhash(candidate.getPreviousBlockHash());
-        Date date = new Date();
-        vote.setDate(date);
+        vote.setUsername(adhhar);
+        vote.setCandidate(candidateName); // Store the candidate/party that was voted for
+        vote.setCurrhash(block.getBlockHash());
+        vote.setPrevhash(block.getPreviousBlockHash());
+        vote.setDate(new Date());
         System.out.println("*************** Vote Saved*********************");
         voterepo.save(vote);
         // Note: MongoDB doesn't support native SQL operations
@@ -60,15 +126,11 @@ public class VoteService {
 
     public boolean userExists(String username) {
         Votedata user = voterepo.findByUsername(username);
-        if (user != null) {
-            return true;
-        }
-        return false;
+        return user != null;
     }
 
     public int countVotes() {
-        
-        return 0;
+        return (int) voterepo.count();
     }
 
     // public static void pollVotes(String choiced, String adhaarid, String uname) {

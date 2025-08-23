@@ -1,7 +1,7 @@
 package net.codejava.model;
 
 import java.beans.Transient;
-import java.sql.Date;
+import java.util.Date;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 

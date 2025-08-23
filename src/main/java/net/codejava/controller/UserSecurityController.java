@@ -5,8 +5,6 @@ import java.io.IOException;
 
 import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -74,10 +72,19 @@ public class UserSecurityController {
 	@GetMapping("/")
 	public String admin(Model model){
 
-		String userCount=""+(repo.findUserCount()-1L);
-		String pendingCount=""+pendingRepo.findPendingCount();
-		String voteCount=""+(voterepo.findcount()-1);
-		String remCount=""+((repo.findUserCount()-1L)-(voterepo.findcount()-1));
+		long totalUsers = repo.findUserCount();
+		long pendingUsers = pendingRepo.findPendingCount();
+		long votedUsers = voterepo.findcount();
+		
+		// Ensure we don't go below 0
+		long adjustedUserCount = Math.max(0, totalUsers);
+		long adjustedVoteCount = Math.max(0, votedUsers);
+		long remainingVotes = Math.max(0, adjustedUserCount - adjustedVoteCount);
+		
+		String userCount = String.valueOf(adjustedUserCount);
+		String pendingCount = String.valueOf(pendingUsers);
+		String voteCount = String.valueOf(adjustedVoteCount);
+		String remCount = String.valueOf(remainingVotes);
 		
 		model.addAttribute("usercount", userCount);
 		model.addAttribute("pendingcount", pendingCount);

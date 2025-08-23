@@ -1,7 +1,7 @@
 package net.codejava.model;
 
 import java.beans.Transient;
-import java.sql.Date;
+import java.util.Date;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -35,6 +35,7 @@ public class User {
 	//2=finished
 	// create a service method
 	private String votestatus;
+	private boolean voted = false;
 
 
 	public String getMobileno() {
@@ -178,6 +179,14 @@ public class User {
 
 	public String getAdhaarpdf() {
 		return this.adhaarpdf;
+	}
+
+	public boolean isVoted() {
+		return voted;
+	}
+
+	public void setVoted(boolean voted) {
+		this.voted = voted;
 	}
 
 	public void setAdhaarpdf(String adhaarpdf) {

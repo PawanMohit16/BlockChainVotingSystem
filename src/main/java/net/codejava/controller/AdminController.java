@@ -8,16 +8,16 @@ import net.codejava.service.ElectionService;
 import net.codejava.service.CandidateService;
 import net.codejava.service.UserService;
 import net.codejava.service.EmailService;
+import net.codejava.service.VoteService;
 import net.codejava.helper.EmailTemplate;
 import net.codejava.helper.Message;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -40,6 +40,9 @@ public class AdminController {
     
     @Autowired
     private EmailTemplate emailTemplate;
+    
+    @Autowired
+    private VoteService voteService;
     
     // ==================== ELECTION MANAGEMENT ====================
     
@@ -171,6 +174,66 @@ public class AdminController {
         return "redirect:/admin/elections";
     }
     
+    // ==================== VOTING CONTROLS ====================
+    
+    @PostMapping("/voting/start")
+    public String startVoting(RedirectAttributes redirectAttributes) {
+        try {
+            // Reset all votes and voting state
+            voteService.resetVotingSystem();
+            
+            // Get the active election
+            List<Election> activeElections = electionService.getElectionsByStatus(Election.ElectionStatus.ACTIVE);
+            if (activeElections.isEmpty()) {
+                redirectAttributes.addFlashAttribute("message", 
+                    new Message("No active election found. Please activate an election first.", "danger"));
+                return "redirect:/admin/dashboard";
+            }
+            
+            // Update voting status in the system
+            voteService.setVotingActive(true);
+            
+            redirectAttributes.addFlashAttribute("message", 
+                new Message("Voting has been started successfully!", "success"));
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("message", 
+                new Message("Error starting voting: " + e.getMessage(), "danger"));
+        }
+        return "redirect:/admin/dashboard";
+    }
+    
+    @PostMapping("/voting/stop")
+    public String stopVoting(RedirectAttributes redirectAttributes) {
+        try {
+            voteService.setVotingActive(false);
+            redirectAttributes.addFlashAttribute("message", 
+                new Message("Voting has been stopped successfully!", "success"));
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("message", 
+                new Message("Error stopping voting: " + e.getMessage(), "danger"));
+        }
+        return "redirect:/admin/dashboard";
+    }
+    
+    @PostMapping("/voting/reset")
+    public String resetVoting(RedirectAttributes redirectAttributes) {
+        try {
+            voteService.resetVotingSystem();
+            redirectAttributes.addFlashAttribute("message", 
+                new Message("Voting system has been reset successfully!", "success"));
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("message", 
+                new Message("Error resetting voting: " + e.getMessage(), "danger"));
+        }
+        return "redirect:/admin/dashboard";
+    }
+    
+    @GetMapping("/voting/stats")
+    @ResponseBody
+    public Map<String, Object> getVotingStats() {
+        return voteService.getVotingStatistics();
+    }
+    
     // ==================== ENHANCED CANDIDATE MANAGEMENT ====================
     
     @GetMapping("/candidates/advanced")
@@ -273,7 +336,7 @@ public class AdminController {
         private final long activeElections;
         private final long completedElections;
         
-        public DashboardStats(long totalUsers, long totalCandidates, long pendingUsers,
+        public DashboardStats(long totalUsers, long totalCandidates, long pendingUsers, 
                             long totalElections, long activeElections, long completedElections) {
             this.totalUsers = totalUsers;
             this.totalCandidates = totalCandidates;

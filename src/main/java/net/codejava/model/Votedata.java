@@ -8,11 +8,13 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Votedata {
 
     @Id
-    String username;
-
-    String prevhash;
-    String currhash;
-    Date date;
+    private String id;
+    
+    private String username;
+    private String candidate;
+    private String prevhash;
+    private String currhash;
+    private Date date;
 
     public String getUsername() {
         return username;
@@ -43,13 +45,20 @@ public class Votedata {
     }
 
     public void setDate(Date date) {
-
         this.date = date;
+    }
+
+    public String getCandidate() {
+        return candidate;
+    }
+
+    public void setCandidate(String candidate) {
+        this.candidate = candidate;
     }
 
     @Override
     public String toString() {
-        return "Votedata [currhash=" + currhash + ", prevhash=" + prevhash + ", username=" + username + "]";
+        return "Votedata [id=" + id + ", username=" + username + ", candidate=" + candidate + ", currhash=" + currhash + ", prevhash=" + prevhash + ", date=" + date + "]";
     }
 
 }

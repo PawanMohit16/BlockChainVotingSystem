@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<div th:fragment="voting-controls" class="row mt-4">
+    <div class="col-12">
+        <!-- Error Alert -->
+        <div id="votingError" class="alert alert-danger d-none" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span>Error loading voting statistics. Please try again later.</span>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header p-3 pb-0">
+                <h6 class="mb-0"><i class="fas fa-vote-yea me-2"></i>Voting Controls</h6>
+            </div>
+            <div class="card-body p-3">
+                <div class="row g-4">
+                    <!-- Voting Status Card -->
+                    <div class="col-xl-4 col-md-6">
+                        <div class="card bg-gradient-dark h-100">
+                            <div class="card-header p-3 pt-2">
+                                <div class="icon icon-lg icon-shape bg-gradient-primary shadow-primary text-center border-radius-xl mt-n4 position-absolute">
+                                    <i class="material-icons opacity-10">how_to_vote</i>
+                                </div>
+                                <div class="text-end pt-1">
+                                    <h4 class="mb-0" id="votingStatus" class="voting-status">LOADING...</h4>
+                                    <p class="text-sm mb-0 text-capitalize">Current Status</p>
+                                </div>
+                            </div>
+                            <hr class="dark horizontal my-0">
+                            <div class="card-footer p-3 d-flex justify-content-center gap-2">
+                                <form th:action="@{/admin/voting/start}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-success btn-sm me-2" id="startVotingBtn">
+                                        <i class="fas fa-play me-1"></i> Start Voting
+                                    </button>
+                                </form>
+                                <form th:action="@{/admin/voting/stop}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-warning btn-sm" id="stopVotingBtn" disabled>
+                                        <i class="fas fa-stop me-1"></i> Stop Voting
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Voting Statistics Card -->
+                    <div class="col-xl-4 col-md-6">
+                        <div class="card bg-gradient-dark h-100">
+                            <div class="card-header p-3 pt-2">
+                                <div class="icon icon-lg icon-shape bg-gradient-success shadow-success text-center border-radius-xl mt-n4 position-absolute">
+                                    <i class="material-icons opacity-10">bar_chart</i>
+                                </div>
+                                <div class="text-end pt-1">
+                                    <h4 class="mb-0" id="totalVotes">0</h4>
+                                    <p class="text-sm mb-0 text-capitalize">Total Votes</p>
+                                </div>
+                            </div>
+                            <hr class="dark horizontal my-0">
+                            <div class="card-body p-3">
+                                <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">Vote Distribution</h6>
+                                <div id="voteDistribution" class="mt-3">
+                                    <div class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="text-sm text-muted mt-2 mb-0">Loading vote distribution...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- System Actions Card -->
+                    <div class="col-xl-4">
+                        <div class="card bg-gradient-dark h-100">
+                            <div class="card-header p-3 pt-2">
+                                <div class="icon icon-lg icon-shape bg-gradient-info shadow-info text-center border-radius-xl mt-n4 position-absolute">
+                                    <i class="material-icons opacity-10">settings</i>
+                                </div>
+                                <div class="text-end pt-1">
+                                    <h4 class="mb-0">Actions</h4>
+                                    <p class="text-sm mb-0 text-capitalize">System Controls</p>
+                                </div>
+                            </div>
+                            <hr class="dark horizontal my-0">
+                            <div class="card-body p-3 text-center">
+                                <form id="resetVotingForm" th:action="@{/admin/voting/reset}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-danger btn-sm mb-3" id="resetVotingBtn">
+                                        <i class="fas fa-undo me-1"></i> Reset Voting System
+                                    </button>
+                                </form>
+                                <div class="mt-3 pt-2 border-top border-gray-700">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="text-xs text-muted">Last Updated:</span>
+                                        <span id="lastUpdated" class="text-xs font-weight-bold">Never</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</html>

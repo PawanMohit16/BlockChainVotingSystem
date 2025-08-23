@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="header">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Favicon -->
+  <link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon.png">
+  <link rel="icon" type="image/png" href="/images/loader.png">
+  <title>Admin Dashboard || SOVS</title>
+
+  <!-- Fonts and icons -->
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900|Roboto+Slab:400,700" />
+  
+  <!-- Icons -->
+  <link href="/css/nucleo-icons.css" rel="stylesheet" />
+  <link href="/css/nucleo-svg.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+  
+  <!-- CSS Files -->
+  <link id="pagestyle" href="/css/material-dashboard.css?v=3.0.0" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/styleAdmin.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/responsive.css" />
+  
+  <style>
+    .inner-banner {
+      padding-top: 50px;
+      padding-bottom: 50px;
+    }
+    
+    /* Custom styles for voting controls */
+    .voting-status {
+      font-size: 1.1rem;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+    }
+    
+    .voting-stats-card {
+      height: 100%;
+    }
+    
+    .candidate-vote-progress {
+      height: 8px;
+      border-radius: 4px;
+    }
+  </style>
+  
+  <!-- JavaScript Libraries -->
+  <script src="/js/core/popper.min.js"></script>
+  <script src="/js/core/bootstrap.min.js"></script>
+  <script src="/js/plugins/perfect-scrollbar.min.js"></script>
+  <script src="/js/plugins/smooth-scrollbar.min.js"></script>
+  <script src="/js/plugins/chartjs.min.js"></script>
+  
+  <!-- Voting Controls JavaScript -->
+  <script th:inline="javascript">
+    // Function to update voting controls
+    function updateVotingControls() {
+      fetch('/admin/voting/stats')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Voting stats:', data);
+          
+          // Update voting status
+          const statusElement = document.getElementById('votingStatus');
+          const startBtn = document.getElementById('startVotingBtn');
+          const stopBtn = document.getElementById('stopVotingBtn');
+          
+          if (data.isVotingActive) {
+            statusElement.textContent = 'ACTIVE';
+            statusElement.className = 'badge bg-success py-3 px-4 mb-3';
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+          } else {
+            statusElement.textContent = 'INACTIVE';
+            statusElement.className = 'badge bg-danger py-3 px-4 mb-3';
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+          }
+          
+          // Update vote counts
+          const totalVotes = data.totalVotes || 0;
+          document.getElementById('totalVotes').textContent = totalVotes;
+          
+          // Update vote distribution
+          const distributionDiv = document.getElementById('voteDistribution');
+          distributionDiv.innerHTML = '';
+          
+          if (data.votesByCandidate && Object.keys(data.votesByCandidate).length > 0) {
+            Object.entries(data.votesByCandidate).forEach(([candidate, count]) => {
+              const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+              
+              const progress = document.createElement('div');
+              progress.className = 'mb-3';
+              progress.innerHTML = `
+                <div class="d-flex justify-content-between mb-1">
+                  <span class="text-sm">${candidate}</span>
+                  <span class="text-xs font-weight-bold">${count} (${percentage}%)</span>
+                </div>
+                <div class="progress">
+                  <div class="progress-bar bg-gradient-info" 
+                       role="progressbar" 
+                       style="width: ${percentage}%" 
+                       aria-valuenow="${percentage}" 
+                       aria-valuemin="0" 
+                       aria-valuemax="100">
+                  </div>
+                </div>
+              `;
+              distributionDiv.appendChild(progress);
+            });
+          } else {
+            distributionDiv.innerHTML = '<p class="text-muted text-sm mb-0">No votes recorded yet</p>';
+          }
+          
+          // Update last updated time
+          const now = new Date();
+          document.getElementById('lastUpdated').textContent = now.toLocaleString();
+        })
+        .catch(error => {
+          console.error('Error fetching voting stats:', error);
+          const errorDiv = document.getElementById('votingError');
+          if (errorDiv) {
+            errorDiv.textContent = 'Failed to load voting statistics. Please try again later.';
+            errorDiv.classList.remove('d-none');
+          }
+        });
+    }
+    
+    // Initialize voting controls when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initial update
+      updateVotingControls();
+      
+      // Set up auto-refresh every 5 seconds
+      setInterval(updateVotingControls, 5000);
+      
+      // Add confirmation for reset action
+      const resetForm = document.getElementById('resetVotingForm');
+      if (resetForm) {
+        resetForm.addEventListener('submit', function(e) {
+          if (!confirm('WARNING: This will reset ALL votes and cannot be undone. Are you sure?')) {
+            e.preventDefault();
+          }
+        });
+      }
+    });
+  </script>
+</head>
+</html>

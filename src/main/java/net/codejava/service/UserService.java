@@ -98,6 +98,23 @@ public class UserService {
 		return status;
 	}
 	
+	/**
+	 * Updates an existing user in the database
+	 * @param user The user object with updated information
+	 * @return The updated user object
+	 */
+	public User updateUser(User user) {
+		if (user != null && user.getUsername() != null) {
+			// Check if user exists before updating
+			User existingUser = repo.findByUsername(user.getUsername());
+			if (existingUser != null) {
+				// Save the updated user
+				return repo.save(user);
+			}
+		}
+		return null;
+	}
+	
 	/*//add user
 	public Usersecurity addUser(Usersecurity user) {
 		list.add(user);
