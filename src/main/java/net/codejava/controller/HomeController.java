@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.List;
 import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -17,12 +18,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import net.codejava.helper.EmailTemplate;
 import net.codejava.helper.Message;
 import net.codejava.model.User;
+import net.codejava.model.Candidate;
 import net.codejava.repository.UserRepo;
 import net.codejava.repository.VoteRepo;
 import net.codejava.service.EmailService;
 import net.codejava.service.UserService;
 import net.codejava.service.VoteService;
 import net.codejava.smartcontract.VoteSmartContract;
+
+import net.codejava.service.CandidateService;
 
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -57,6 +61,9 @@ public class HomeController {
 	@Autowired
 	VoteRepo voterepo;
 
+	@Autowired
+	CandidateService candidateService;
+
 	// ---------------------------USER HOME
 	// PAGE--------------------------------------//
 
@@ -79,6 +86,18 @@ public class HomeController {
 		if(userservice.getUser("admin").getVotestatus().equals("2")){
 			
 			session.setAttribute("status", new Message("Voting has finished! You can check the results!", "info"));
+		}
+
+		// Expose simple results data for users when voting has finished
+		try {
+			List<Candidate> candidates = candidateService.getAllCandidates();
+			long totalVotes = 0;
+			for (Candidate c : candidates) totalVotes += c.getVoteCount();
+			model.addAttribute("allCandidates", candidates);
+			model.addAttribute("totalVotes", totalVotes);
+			model.addAttribute("votingEnded", userservice.getUser("admin").getVotestatus().equals("2"));
+		} catch (Exception e) {
+			System.err.println("Failed to attach voting results to user home: " + e.getMessage());
 		}
 		
 		return "index2.html";

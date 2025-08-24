@@ -242,6 +242,30 @@
       </div>
     </div>
 
+
+    <!-- Voting Results (visible when voting finished) -->
+    <div class="row mt-4" th:if="${votingEnded}">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Election Results (Total votes: <span th:text="${totalVotes}">0</span>)</h5>
+            <table class="table table-striped">
+              <thead>
+                <tr><th>Candidate</th><th>Party</th><th>Votes</th></tr>
+              </thead>
+              <tbody>
+                <tr th:each="c : ${allCandidates}">
+                  <td th:text="${c.firstname} + ' ' + ${c.lastname}">Name</td>
+                  <td th:text="${c.party}">Party</td>
+                  <td th:text="${c.voteCount}">0</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <br>
 
 

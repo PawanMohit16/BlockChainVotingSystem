@@ -212,6 +212,25 @@
               </div>
             </span>
 
+            <!-- Inline results preview for users when voting ended -->
+            <div th:if="${votingEnded}" class="container mt-4">
+              <h4>Election Results (Total votes: <span th:text="${totalVotes}">0</span>)</h4>
+              <div class="table-responsive">
+                <table class="table table-bordered">
+                  <thead>
+                    <tr><th>Candidate</th><th>Party</th><th>Votes</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr th:each="c : ${allCandidates}">
+                      <td th:text="${c.firstname} + ' ' + ${c.lastname}">Name</td>
+                      <td th:text="${c.party}">Party</td>
+                      <td th:text="${c.voteCount}">0</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
 
             <!-- <span th:if="${session.status.content == 'Voting is Live!'}">
                 <h2>Voting is Live</h2>
@@ -1339,7 +1358,7 @@
             $("#popupmain").css("display", "block");
             localStorage.setItem("popState", "shown");
             document.querySelector("#videomute").autoplay = false;
-          }, 0000);
+          }, 10000);
 
           $("#buttonid").click(function () {
             $("#popupmain").css("display", "none");

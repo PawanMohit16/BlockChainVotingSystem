@@ -95,6 +95,19 @@ public class UserSecurityController {
 		model.addAttribute("votecount", voteCount);
 		model.addAttribute("remainingcount", remCount);		
 		System.out.println(userCount+"--------------------"+pendingCount);
+		// Add voting statistics for admin dashboard
+		try {
+			List<Candidate> candidates = candidateService.getAllCandidates();
+			long totalVotes = 0;
+			for (Candidate c : candidates) {
+				totalVotes += c.getVoteCount();
+			}
+			model.addAttribute("allCandidates", candidates);
+			model.addAttribute("totalVotes", totalVotes);
+			model.addAttribute("votingEnded", "2".equals(userService.getUser("admin").getVotestatus()));
+		} catch (Exception e) {
+			System.err.println("Failed to load voting stats for admin page: " + e.getMessage());
+		}
 		return "admin.html";
 	}
 
