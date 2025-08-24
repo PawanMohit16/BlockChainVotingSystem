@@ -1,0 +1,55 @@
+.header-name {
+    padding: 10px 15px;
+    margin-left: 10px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.profile-img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.candidate-img {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+}
+
+.empty-link {
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    padding: 8px 15px;
+    transition: color 0.3s ease;
+}
+
+.empty-link:hover {
+    color: #1f5ad2;
+}
+
+/* Fix spacing in headers */
+.main-header {
+    padding: 15px 0;
+}
+
+.main-menu .main-menu__list > li {
+    padding: 0 15px;
+}
+
+/* Fix image display */
+img {
+    max-width: 100%;
+    height: auto;
+}

@@ -51,9 +51,8 @@
     <header>
       <div class="image-text">
         <span class="image" style="height: 110px;">
-          <!-- <img src="/images/loader.png" alt="" height="80px" width="80px"> -->
+          <img src="/images/loader.png" alt="Logo" class="logo-img" style="height: 80px; width: 80px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
         </span>
-
       </div>
 
       <i class='bx bx-chevron-right toggle'></i>
@@ -78,26 +77,39 @@
           </li>
 
           <li class="nav-link">
-            <a th:href="@{'/admin/users'}">
-              <i class='bx bxs-user-detail icon' title="Database Part"></i>
-              <span class="text nav-text" title="Database Part">List of Users</span>
-            </a>
-          </li>
-
-
-
-          <li class="nav-link">
-            <a th:href=" @{'/admin/pendingrequest'}">
-              <i class='bx bx-hourglass icon' title="Pending Requset"></i>
-              <span class="text nav-text" title="Pending Request">Pending requests</span>
+            <a class="nav-link" th:href="@{'/admin/users'}">
+              <i class='bx bxs-user-detail icon' title="Users"></i>
+              <span class="text nav-text">Manage Users</span>
             </a>
           </li>
 
           <li class="nav-link">
-            <a th:href="@{'/admin/notifications'}">
-              <i class='bx bx-bell icon' title="Notification"></i>
-              <span class="text nav-text" title="Notification">Notifications</span>
+            <a class="nav-link" th:href="@{'/admin/candidates'}">
+              <i class='bx bx-user-pin icon' title="Candidates"></i>
+              <span class="text nav-text">Manage Candidates</span>
             </a>
+          </li>
+
+          <li class="nav-link">
+            <a class="nav-link" th:href="@{'/admin/pendingrequest'}">
+              <i class='bx bx-hourglass icon' title="Pending Requests"></i>
+              <span class="text nav-text">Pending Requests</span>
+            </a>
+          </li>
+
+          <li class="nav-link">
+            <a class="nav-link" th:href="@{'/admin/notifications'}">
+              <i class='bx bx-bell icon' title="Notifications"></i>
+              <span class="text nav-text">Notifications</span>
+            </a>
+          </li>
+          
+          <li class="nav-link">
+            <a class="nav-link" th:href="@{'/admin/election-status'}">
+              <i class='bx bx-stats icon' title="Election Status"></i>
+              <span class="text nav-text">Election Status</span>
+            </a>
+          </li>
           </li>
           <li class="nav-link">
             <a th:href="@{'/admin/candidates'}">

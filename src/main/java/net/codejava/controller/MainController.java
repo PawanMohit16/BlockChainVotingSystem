@@ -126,7 +126,7 @@ public class MainController {
 
 	// This url will be executed when users tries to register
 	@GetMapping("/register")
-	public String showForm(Model model) {
+	public String showForm(Model model, @RequestParam(value = "error", required = false) String error) {
 
 		// We are using model to store the list of gender and listates
 		// These data will be used in the register page
@@ -140,6 +140,11 @@ public class MainController {
 		List<String> liststates = Arrays.asList("Choose", "Andhra Pradesh", "Maharashtra", "Tamil Nadu", "Uttarakhand",
 				"West Bengal");
 		model.addAttribute("liststates", liststates);
+		
+		// Add error message if present
+		if (error != null) {
+			model.addAttribute("errorMessage", "Registration failed. Please check your input and try again.");
+		}
 
 		return "register_new.html";
 	}
@@ -158,10 +163,18 @@ public class MainController {
 	@PostMapping("/register")
 	public String submitForm(@ModelAttribute("pending") Pending pending,
 			@RequestParam("image") MultipartFile multipartFile,
-			@RequestParam("pdf") MultipartFile multipartFile2) throws IOException {
+			@RequestParam("pdf") MultipartFile multipartFile2, 
+			HttpServletRequest request) throws IOException {
 
-		// Checking if username already exists
-		if (!(userservice.userExists(pending.getUsername()))) {
+		System.out.println("=== REGISTRATION DEBUG ===");
+		System.out.println("Received pending object: " + pending);
+		System.out.println("Birthday value: " + pending.getBirthday());
+		System.out.println("Birthday type: " + (pending.getBirthday() != null ? pending.getBirthday().getClass().getName() : "null"));
+		System.out.println("=== END REGISTRATION DEBUG ===");
+
+		try {
+			// Checking if username already exists
+			if (!(userservice.userExists(pending.getUsername()))) {
 			String fileName = multipartFile.getOriginalFilename();
 			String adhaarfileName = multipartFile2.getOriginalFilename();
 			// String Adhar=user.getUsername();
@@ -201,6 +214,15 @@ public class MainController {
 			System.out.println("******* User exist **********");
 			// if username already exists, then return this page
 			return "exist.html";
+		}
+		} catch (Exception e) {
+			System.out.println("=== REGISTRATION ERROR ===");
+			System.out.println("Error during registration: " + e.getMessage());
+			e.printStackTrace();
+			System.out.println("=== END REGISTRATION ERROR ===");
+			
+			// Return to registration page with error
+			return "redirect:/register?error=registration_failed";
 		}
 
 	}

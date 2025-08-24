@@ -1,9 +1,11 @@
 package net.codejava.model;
 
 import java.beans.Transient;
+import java.time.LocalDate;
 import java.util.Date;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Document(collection = "pending")
 public class Pending {
@@ -19,7 +21,8 @@ public class Pending {
 	private String password;
 	private String gender;
 	
-	private Date birthday;
+	@JsonFormat(pattern = "yyyy-MM-dd")
+	private LocalDate birthday;
 	private String mobileno;
 
 
@@ -155,11 +158,11 @@ public class Pending {
 	}
 
 
-	public Date getBirthday() {
+	public LocalDate getBirthday() {
 		return birthday;
 	}
 
-	public void setBirthday(Date birthday) {
+	public void setBirthday(LocalDate birthday) {
 		this.birthday = birthday;
 	}
 

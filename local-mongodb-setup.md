@@ -32,3 +32,4 @@ The MongoDB Atlas authentication is failing. This could be due to:
 
 ## Quick Fix:
 Try updating the connection string with proper authentication parameters.
+

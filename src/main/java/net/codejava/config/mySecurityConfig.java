@@ -36,7 +36,22 @@ public class mySecurityConfig extends WebSecurityConfigurerAdapter{
 			.defaultSuccessUrl("/default",true) 
 			// if login is successfull, system will be redirected to this url(/default)
 			.and()
-			.logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout")).logoutSuccessUrl("/index");
+			.sessionManagement()
+			.invalidSessionUrl("/index")
+			.maximumSessions(1)
+			.expiredUrl("/index")
+			.and()
+			.and()
+			.rememberMe()
+			.key("uniqueAndSecret")
+			.tokenValiditySeconds(86400)
+			.and()
+			.logout()
+			.logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+			.logoutSuccessUrl("/index")
+			.invalidateHttpSession(true)
+			.clearAuthentication(true)
+			.deleteCookies("JSESSIONID", "remember-me");
 			
 	}
 	

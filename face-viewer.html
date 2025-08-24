@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MongoDB Face Image Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .search-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .search-section input, .search-section button {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .search-section button {
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        .search-section button:hover {
+            background: #0056b3;
+        }
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .image-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .image-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .image-info {
+            font-size: 14px;
+            color: #666;
+        }
+        .image-info strong {
+            color: #333;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .error {
+            color: #dc3545;
+            padding: 10px;
+            background: #f8d7da;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #155724;
+            padding: 10px;
+            background: #d4edda;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 MongoDB Face Image Viewer</h1>
+        <p>View face images stored in your MongoDB Atlas database</p>
+        
+        <div class="search-section">
+            <h3>Search by Username</h3>
+            <input type="text" id="username" placeholder="Enter username (e.g., test_user_123)">
+            <button onclick="searchByUsername()">Search</button>
+            <button onclick="loadAllImages()">Load All Images</button>
+        </div>
+
+        <div id="status"></div>
+        <div id="imageContainer" class="image-grid"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5001/api/face';
+        const SPRING_BOOT_API = 'http://localhost:4000/api/face';
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+
+        function showLoading() {
+            document.getElementById('imageContainer').innerHTML = '<div class="loading">Loading images...</div>';
+        }
+
+        async function searchByUsername() {
+            const username = document.getElementById('username').value.trim();
+            if (!username) {
+                showStatus('Please enter a username', 'error');
+                return;
+            }
+
+            showLoading();
+            showStatus('Searching for face data...', 'info');
+
+            try {
+                // First try the Face Service API
+                const response = await fetch(`${API_BASE}/user/${username}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayImages([data]);
+                    showStatus(`Found face data for user: ${username}`, 'success');
+                } else {
+                    // Try Spring Boot API directly
+                    const springResponse = await fetch(`${SPRING_BOOT_API}/user/${username}`);
+                    
+                    if (springResponse.ok) {
+                        const springData = await springResponse.json();
+                        displayImages(springData);
+                        showStatus(`Found ${springData.length} face records for user: ${username}`, 'success');
+                    } else {
+                        showStatus(`No face data found for user: ${username}`, 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`Error searching for user: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadAllImages() {
+            showLoading();
+            showStatus('Loading all face data...', 'info');
+
+            try {
+                // Try to get all face data (you might need to implement this endpoint)
+                const response = await fetch(`${SPRING_BOOT_API}/all`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayImages(data);
+                    showStatus(`Loaded ${data.length} face records`, 'success');
+                } else {
+                    showStatus('No endpoint available to load all images. Try searching by username.', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`Error loading images: ${error.message}`, 'error');
+            }
+        }
+
+        function displayImages(faceDataArray) {
+            const container = document.getElementById('imageContainer');
+            
+            if (!Array.isArray(faceDataArray)) {
+                faceDataArray = [faceDataArray];
+            }
+
+            if (faceDataArray.length === 0) {
+                container.innerHTML = '<div class="loading">No face data found</div>';
+                return;
+            }
+
+            const html = faceDataArray.map(data => {
+                const imageSrc = data.faceImageBase64 || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+                const timestamp = new Date(data.timestamp).toLocaleString();
+                
+                return `
+                    <div class="image-card">
+                        <img src="${imageSrc}" alt="Face Image" onerror="this.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='">
+                        <div class="image-info">
+                            <strong>Username:</strong> ${data.username || 'N/A'}<br>
+                            <strong>Image Type:</strong> ${data.imageType || 'N/A'}<br>
+                            <strong>Timestamp:</strong> ${timestamp}<br>
+                            <strong>Has Encoding:</strong> ${data.faceEncoding ? 'Yes' : 'No'}<br>
+                            <strong>ID:</strong> ${data.id || data._id || 'N/A'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        // Load some sample data on page load
+        window.onload = function() {
+            showStatus('Ready to view face images. Enter a username to search or click "Load All Images".', 'info');
+        };
+    </script>
+</body>
+</html>

@@ -25,6 +25,51 @@ a:visited {
     text-decoration: none;
 }
 
+/* Fix image display */
+img {
+    max-width: 100%;
+    height: auto;
+    display: inline-block;
+}
+
+/* Image containers */
+.image-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.candidate-image {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.candidate-image:hover {
+    transform: scale(1.05);
+}
+
+/* Profile image styles */
+.profile-image {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Header spacing */
+.header-content {
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
 h1,
 h2,
 h3,
