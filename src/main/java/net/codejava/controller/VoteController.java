@@ -1,5 +1,9 @@
 package net.codejava.controller;
 
+import org.springframework.web.bind.annotation.ResponseBody;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
@@ -10,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import java.util.*;
 
 import net.codejava.helper.EmailTemplate;
@@ -57,24 +62,48 @@ public class VoteController {
 
     @Autowired
     CandidateRepo candidaterepo;
-    
+
+    /**
+     * Endpoint to verify face using static_vs_live_verification Python function
+     */
+    @GetMapping("/verify-face/{userId}")
+    @ResponseBody
+    public String verifyFace(@PathVariable("userId") String userId) {
+        String pythonScript = "src/main/java/net/codejava/controller/main.py";
+        ProcessBuilder pb = new ProcessBuilder("python", pythonScript, "--static-verify", userId);
+        pb.redirectErrorStream(true);
+        try {
+            Process process = pb.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            StringBuilder output = new StringBuilder();
+            String line;
+            boolean isMatch = false;
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
+                if (line.contains("MATCH: You are the same person.")) {
+                    isMatch = true;
+                }
+                if (line.contains("NO MATCH: You are NOT the same person.")) {
+                    isMatch = false;
+                }
+            }
+            process.waitFor();
+            if (isMatch) {
+                return "success";
+            } else {
+                return "fail";
+            }
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            return "error";
+        }
+    }
+
     @GetMapping("/votepage")
-    public String vote(Principal principal,HttpSession session, Model model) {
-        //String name = principal.getName();
-        //check for existing voter
-
-
-        //if(!voteService.userExists(name)){
-            List<Candidate> candidates = candidateService.getAllCandidates();
-		    model.addAttribute("candidates", candidates);
-            //session.setAttribute("status", new Message("Thanks for voting!", "success"));
-            return "vote.html";
-        // }
-        // else
-        // {
-        //     session.setAttribute("status", new Message("You have already voted. Thanks!", "danger"));
-        //     return "redirect:/public/home";
-        // }
+    public String vote(Principal principal, HttpSession session, Model model) {
+        List<Candidate> candidates = candidateService.getAllCandidates();
+        model.addAttribute("candidates", candidates);
+        return "vote.html";
     }
 
     @GetMapping("/votecasted/{choice}")
@@ -85,30 +114,30 @@ public class VoteController {
         }
 
         String name = principal.getName();
-        
+
         try {
             // Check if user has already voted
             if (voteService.userExists(name)) {
                 session.setAttribute("status", new Message("You have already voted. Thanks!", "warning"));
                 return "redirect:/public/home";
             }
-            
+
             // Get user details
             User user = userService.getUser(name);
             if (user == null) {
                 session.setAttribute("status", new Message("User not found!", "danger"));
                 return "redirect:/public/home";
             }
-            
+
             // Process the vote
             boolean voteSuccess = voteService.isSuccessfull(choice, user.getUsername(), user.getFirstname());
-            
+
             if (voteSuccess) {
                 // Get the vote hash
                 Votedata vote = voteRepo.findByUsername(name);
                 if (vote != null) {
                     String hash = vote.getCurrhash();
-                    
+
                     try {
                         // Send confirmation email
                         String f = "Vote Successfully Recorded";
@@ -117,20 +146,24 @@ public class VoteController {
                         String email = user.getEmail();
                         String subject = "Your Vote Has Been Recorded";
                         String message = emailTemplate.getTemplate(f, s, t);
-                        
+
                         // Send email in a separate thread to avoid blocking
                         new Thread(() -> {
                             try {
-                                emailservice.sendEmail(subject, message, email);
+                                System.out.println("[Vote Confirmation] Sending email to: " + email);
+                                System.out.println("[Vote Confirmation] Subject: " + subject);
+                                System.out.println("[Vote Confirmation] Message: " + message);
+                                boolean emailSent = emailservice.sendEmail(subject, message, email);
+                                System.out.println("[Vote Confirmation] Email sent result: " + emailSent);
                             } catch (Exception e) {
-                                System.err.println("Failed to send confirmation email: " + e.getMessage());
+                                System.err.println("[Vote Confirmation] Failed to send confirmation email: " + e.getMessage());
+                                e.printStackTrace();
                             }
                         }).start();
-                        
                         // Update user's voted status
                         user.setVoted(true);
                         User updatedUser = userService.updateUser(user);
-                        
+
                         if (updatedUser != null) {
                             session.setAttribute("status", new Message("Thank you for voting! A confirmation has been sent to your email.", "success"));
                         } else {
@@ -150,7 +183,7 @@ public class VoteController {
             e.printStackTrace();
             session.setAttribute("status", new Message("An unexpected error occurred while processing your vote. Our team has been notified.", "danger"));
         }
-        
+
         return "redirect:/public/home";
     }
 
@@ -212,5 +245,13 @@ public class VoteController {
         }
 
         return "result.html";
+    }
+
+    /**
+     * Endpoint to show final vote confirmation page
+     */
+    @RequestMapping(value = "/final", method = RequestMethod.GET)
+    public String finalConfirmation() {
+        return "final.html";
     }
 }

@@ -16,11 +16,11 @@
 				<div class="col-md-3 col-sm-4" th:each="candidate : ${candidates}">
 					<div class="profile-card">
 						<div class="profile-card_cover">
-							<img th:src="${candidate.partypic}" alt="">
+							<img th:src="@{${candidate.partypic}}" alt="Party Image">
 						</div>
 						<div class="profile-card_padding">
 							<div class="profile-card_image">
-								<img th:src="${candidate.candidateImagePath}" alt="">
+								<img th:src="@{${candidate.candidateImagePath}}" alt="Candidate Image">
 							</div>
 							<div class="profile-card_details">
 								<h3><span th:text="${candidate.firstname}"></span> 
@@ -30,7 +30,7 @@
 							</div>
 							<div class="profile-card_social">
 	
-							<a th:href="@{'/vote/votecasted/'+${candidate.party}}"><button  class="button button1">Vote</button> </a>
+							<button class="button button1" onclick="showCameraAndVote('[[${candidate.party}]]')">Vote</button>
 								
 							</div>
 						</div>
@@ -47,5 +47,46 @@
 	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+	<div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
+		<video id="camera" width="320" height="240" autoplay></video>
+	</div>
+	<script>
+	function showCameraAndVote(party) {
+		var modal = document.getElementById('cameraModal');
+		var video = document.getElementById('camera');
+		modal.style.display = 'flex';
+		navigator.mediaDevices.getUserMedia({ video: true })
+			.then(stream => {
+				video.srcObject = stream;
+				setTimeout(() => {
+					stream.getTracks().forEach(track => track.stop());
+					video.srcObject = null;
+					modal.style.display = 'none';
+					processVote(party);
+				}, 3000);
+			});
+	}
+
+	function processVote(party) {
+		fetch('/vote/votecasted/' + party, {
+			method: 'GET',
+			credentials: 'include'
+		})
+		.then(response => response.text())
+		.then(result => {
+				document.body.insertAdjacentHTML('beforeend', '<div id="voteStatus" style="position:fixed;top:20px;right:20px;background:#1aa19c;color:#fff;padding:20px;border-radius:10px;z-index:9999;">User Validated!</div>');
+				setTimeout(() => {
+					var el = document.getElementById('voteStatus');
+					if (el) el.remove();
+					// Redirect to final page/message
+					window.location.href = "/vote/final";
+				}, 2000);
+		})
+		.catch(error => {
+			alert('Error processing vote: ' + error);
+		});
+	}
+	</script>
 </body>
 </html>
