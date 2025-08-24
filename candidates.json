@@ -1,0 +1,19 @@
+{
+  "candidates": [
+    {
+      "name": "John Doe",
+      "party": "Independent",
+      "imageHash": "QmXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXx"
+    },
+    {
+      "name": "Jane Smith",
+      "party": "Progressive Party",
+      "imageHash": "QmYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYyYy"
+    },
+    {
+      "name": "Alex Johnson",
+      "party": "Future Forward",
+      "imageHash": "QmZzZzZzZzZzZzZzZzZzZzZzZzZzZzZzZzZzZzZzZzZzZzZzZzZz"
+    }
+  ]
+}

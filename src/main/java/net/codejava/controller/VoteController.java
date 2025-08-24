@@ -18,6 +18,7 @@ import net.codejava.model.Candidate;
 import net.codejava.model.Votedata;
 import net.codejava.model.User;
 import net.codejava.repository.CandidateRepo;
+import net.codejava.service.BlockchainService;
 import net.codejava.repository.VoteRepo;
 import net.codejava.service.CandidateService;
 import net.codejava.service.EmailService;
@@ -35,6 +36,9 @@ public class VoteController {
 
     @Autowired
     VoteSmartContract smartcontract;
+
+    @Autowired
+    private BlockchainService blockchainService;
 
     @Autowired
     private VoteRepo voteRepo;
@@ -171,11 +175,26 @@ public class VoteController {
                 return "result.html";
             }
 
-            // Get all candidates for vote counts
+            // Get all candidates and find the one with most votes
             List<Candidate> allCandidates = candidateService.getAllCandidates();
             
-            // Get total votes cast
-            long totalVotes = voteRepo.count();
+            // Find candidate with highest votes
+            Candidate highestVoted = null;
+            int maxVotes = -1;
+            long totalVotes = 0;
+            
+            for (Candidate c : allCandidates) {
+                totalVotes += c.getVoteCount();
+                if (c.getVoteCount() > maxVotes) {
+                    maxVotes = c.getVoteCount();
+                    highestVoted = c;
+                }
+            }
+            
+            // If we have a vote leader from database, use that instead of blockchain result
+            if (highestVoted != null && highestVoted.getVoteCount() > 0) {
+                winner = highestVoted;
+            }
             
             // Add attributes to the model
             model.addAttribute("winningParty", winner);

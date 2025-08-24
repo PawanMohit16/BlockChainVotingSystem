@@ -24,6 +24,7 @@ import net.codejava.repository.CandidateRepo;
 import net.codejava.repository.PendingRepo;
 import net.codejava.repository.UserRepo;
 import net.codejava.repository.VoteRepo;
+import net.codejava.service.VoteService;
 import net.codejava.service.CandidateService;
 import net.codejava.service.UserService;
 import net.codejava.service.EmailService;
@@ -56,6 +57,9 @@ public class UserSecurityController {
 
 	@Autowired
 	VoteRepo voterepo;
+
+	@Autowired
+	VoteService voteService;
 
 	//all users
 	// @GetMapping("/")
@@ -302,6 +306,13 @@ public class UserSecurityController {
 		User admin = userService.getUser("admin");
 		admin.setVotestatus("1");
 		repo.save(admin);
+		// Reset votes and ensure in-memory voting state is synced
+		try {
+			voteService.resetVotingSystem();
+			voteService.setVotingActive(true);
+		} catch (Exception e) {
+			System.err.println("Failed to sync voting state on start: " + e.getMessage());
+		}
 		return "redirect:/admin/";
 	}
 
@@ -311,6 +322,13 @@ public class UserSecurityController {
 		admin.setVotestatus("0");
 		
 		repo.save(admin);
+		try {
+			// Clear votes and set inactive
+			voteService.resetVotingSystem();
+			voteService.setVotingActive(false);
+		} catch (Exception e) {
+			System.err.println("Failed to sync voting state on restart: " + e.getMessage());
+		}
 		return "redirect:/admin/";
 	}
 
@@ -320,6 +338,11 @@ public class UserSecurityController {
 		admin.setVotestatus("2");
 		
 		repo.save(admin);
+		try {
+			voteService.setVotingActive(false);
+		} catch (Exception e) {
+			System.err.println("Failed to sync in-memory voting state on end: " + e.getMessage());
+		}
 		return "redirect:/admin/";
 	}
 		

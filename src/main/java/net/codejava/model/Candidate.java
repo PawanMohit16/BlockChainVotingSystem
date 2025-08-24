@@ -24,6 +24,20 @@ public class Candidate{
     // Additional fields for candidate images
     private String candidate_image_path;
 
+    private int voteCount = 0;
+
+    public int getVoteCount() {
+        return voteCount;
+    }
+
+    public void setVoteCount(int voteCount) {
+        this.voteCount = voteCount;
+    }
+
+    public void incrementVoteCount() {
+        this.voteCount++;
+    }
+
     public String getId() {
         return id;
     }

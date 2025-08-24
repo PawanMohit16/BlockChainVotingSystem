@@ -9,22 +9,51 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import javax.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
 import net.codejava.model.Block;
 import net.codejava.model.Votedata;
 import net.codejava.repository.VoteRepo;
 import net.codejava.smartcontract.VoteSmartContract;
+import net.codejava.model.Candidate;
+import net.codejava.model.User;
+import net.codejava.repository.UserRepo;
 
 @Service
 public class VoteService {
-    private final AtomicBoolean isVotingActive = new AtomicBoolean(false);
+    private final AtomicBoolean isVotingActive = new AtomicBoolean(true);
 
     @Autowired
     private VoteRepo voterepo;
 
     @Autowired
     private VoteSmartContract smartcontract;
+
+    @Autowired
+    private net.codejava.repository.CandidateRepo candidaterepo;
+
+    @Autowired
+    private UserRepo userRepo;
+
+        @Autowired
+        private net.codejava.smartcontract.VotingContractService votingContractService;
+
+        @PostConstruct
+        private void initVotingStateFromAdmin() {
+            try {
+                User admin = userRepo.findByUsername("admin");
+                if (admin != null) {
+                    String vs = admin.getVotestatus();
+                    // votestatus: "1" = open, else closed
+                    boolean active = "1".equals(vs);
+                    isVotingActive.set(active);
+                    System.out.println("[INIT] Voting active set to: " + active + " from admin votestatus=" + vs);
+                }
+            } catch (Exception e) {
+                System.err.println("[INIT] Failed to initialize voting state from admin: " + e.getMessage());
+            }
+        }
     
     // Removed unused mongoTemplate for now
     
@@ -42,27 +71,38 @@ public class VoteService {
         voterepo.deleteAll();
         // Reset voting status
         isVotingActive.set(false);
+        
+        // Reset all candidate vote counts
+        List<Candidate> candidates = candidaterepo.findAll();
+        for (Candidate candidate : candidates) {
+            candidate.setVoteCount(0);
+            candidaterepo.save(candidate);
+        }
+
+        // Reset voted status for all users
+        List<User> users = userRepo.findAll();
+        for (User user : users) {
+            user.setVoted(false);
+            userRepo.save(user);
+        }
     }
     
     public Map<String, Object> getVotingStatistics() {
         Map<String, Object> stats = new HashMap<>();
         
-        // Get total votes cast
-        long totalVotes = voterepo.count();
-        stats.put("totalVotes", totalVotes);
-        
-        // Initialize vote counts by candidate/choice
+        // Get votes from candidates
+        List<Candidate> candidates = candidaterepo.findAll();
+        long totalVotes = 0;
         Map<String, Long> votesByCandidate = new HashMap<>();
-        List<Votedata> allVotes = voterepo.findAll();
         
-        // Count votes by candidate/choice
-        for (Votedata vote : allVotes) {
-            String candidateVote = vote.getCandidate();
-            if (candidateVote != null && !candidateVote.trim().isEmpty()) {
-                votesByCandidate.put(candidateVote, 
-                    votesByCandidate.getOrDefault(candidateVote, 0L) + 1);
-            }
+        // Calculate total votes and votes per candidate
+        for (Candidate candidate : candidates) {
+            long votes = candidate.getVoteCount();
+            totalVotes += votes;
+            votesByCandidate.put(candidate.getParty(), votes);
         }
+        
+        stats.put("totalVotes", totalVotes);
         
         // Add vote counts by candidate
         stats.put("votesByCandidate", votesByCandidate);
@@ -80,48 +120,69 @@ public class VoteService {
             throws NoSuchAlgorithmException, UnsupportedEncodingException {
         
         // Check if voting is active
+        // Check if voting is active
         if (!isVotingActive()) {
             throw new IllegalStateException("Voting is not active at this time");
         }
-        
         // Check if user has already voted
         if (userExists(adhhar)) {
             throw new IllegalStateException("You have already voted");
         }
-        
-        // Correct table if needed
-        if (!smartcontract.checkTable()) {
-            smartcontract.correctTableValues();
+
+        // Check on blockchain if user has already voted
+        try {
+            Boolean hasVoted = votingContractService.hasVoted(adhhar);
+            if (hasVoted != null && hasVoted) {
+                throw new IllegalStateException("You have already voted (blockchain)");
+            }
+        } catch (Exception e) {
+            System.err.println("[ERROR] Blockchain check failed: " + e.getMessage());
+            throw new RuntimeException("Blockchain check failed: " + e.getMessage());
         }
-        
+
+        // Prepare vote block
         Votedata lastEntry = voterepo.findTopByOrderByDateDesc();
-        System.out.println("Last vote entry: " + lastEntry);
-        
         String[] data = { adhhar, name, candidateName };
-        Block block;
-        
-        if (lastEntry == null) {
-            // This is the first vote, use the genesis block hash
-            System.out.println("First vote in the system");
-            block = new Block(data, "0");
-        } else {
-            System.out.println(adhhar + "-----" + name + "-----" + candidateName + "-----" + lastEntry.getCurrhash());
-            block = new Block(data, lastEntry.getCurrhash());
-        }
+        Block block = (lastEntry == null) ? new Block(data, "0") : new Block(data, lastEntry.getCurrhash());
 
         Votedata vote = new Votedata();
         vote.setUsername(adhhar);
-        vote.setCandidate(candidateName); // Store the candidate/party that was voted for
+        vote.setCandidate(candidateName);
         vote.setCurrhash(block.getBlockHash());
         vote.setPrevhash(block.getPreviousBlockHash());
         vote.setDate(new Date());
-        System.out.println("*************** Vote Saved*********************");
-        voterepo.save(vote);
-        // Note: MongoDB doesn't support native SQL operations
-        // This functionality would need to be implemented differently
-        // voterepo.copyData(vote.getUsername(), vote.getCurrhash(), vote.getDate(), vote.getPrevhash());
 
-        return true;
+        // Save vote in DB
+        voterepo.save(vote);
+        System.out.println("[INFO] Vote saved for user: " + adhhar + " candidate: " + candidateName);
+
+        // Update candidate vote count
+        Candidate candidate = candidaterepo.findByParty(candidateName);
+        if (candidate != null) {
+            candidate.incrementVoteCount();
+            candidaterepo.save(candidate);
+            System.out.println("[INFO] Candidate " + candidateName + " vote count incremented.");
+        } else {
+            System.err.println("[ERROR] Invalid candidate: " + candidateName);
+            throw new IllegalStateException("Invalid candidate: " + candidateName);
+        }
+
+        // Record vote on blockchain and log transaction hash
+        try {
+            // TODO: Map candidateName to candidateId
+            java.math.BigInteger candidateId = java.math.BigInteger.valueOf(1); // Replace with actual mapping
+            org.web3j.protocol.core.methods.response.TransactionReceipt receipt = votingContractService.vote(candidateId);
+            String txHash = receipt.getTransactionHash();
+            vote.setCurrhash(txHash); // Optionally store txHash in currhash or add a new field for txHash
+            voterepo.save(vote); // Update with txHash
+            System.out.println("[BLOCKCHAIN] Vote transaction hash: " + txHash);
+            System.out.println("[BLOCKCHAIN] Transaction status: " + receipt.getStatus());
+        } catch (Exception e) {
+            System.err.println("[ERROR] Blockchain vote failed: " + e.getMessage());
+            throw new RuntimeException("Blockchain vote failed: " + e.getMessage());
+        }
+
+    return true;
     }
 
     public boolean userExists(String username) {
